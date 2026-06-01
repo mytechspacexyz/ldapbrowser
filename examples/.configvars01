@@ -1,0 +1,20 @@
+# AD LDAP example:
+
+export LDAP_SERVER_HOSTNAME=""
+export LDAP_SERVER_HOSTNAMES=(
+							  "mts-ad220.ad.mts.xyz"
+							  "mts-ad221.ad.mts.xyz"
+							 )
+export LDAP_DIRECTORY_TYPE="AD"
+export LDAP_BIND_ACCOUNT="Administrator"
+export LDAP_BIND_ACCOUNT_ATTR="cn"
+export LDAP_BIND_PASSWORD="akhScllnVDYwZDV6RlAK"
+export LDAP_SUFFIX="DC=ad,DC=mts,DC=xyz"
+export LDAP_BASE_DN="DC=ad,DC=mts,DC=xyz"
+export LDAP_USERS_DN="CN=users"
+export LDAP_GROUPS_DN=${LDAP_USERS_DN}
+export LDAP_CURRENT_DN=${LDAP_BASE_DN}
+export LDAP_SELECTED_DN=${LDAP_CURRENT_DN}
+export LDAP_SNAPSHOTS_DIR="${BASHAPP_DIR}/data"
+export LDAP_SNAPSHOTS_FILE="${LDAP_SNAPSHOTS_DIR}/ldapbrowser-snapshots"
+export CACERT="${BASHAPP_DIR}/${BASHAPP_CONFDIR}/mts-ad-ca.crt"

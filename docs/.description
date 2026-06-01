@@ -1,0 +1,36 @@
+# LDAPBrowser - A CLI LDAP browser bash application.
+
+A lightweight bash application designed to view/browse various LDAP directories on a Linux/Unix system.
+
+## Key Features
+
+- **Real-time LDAP Browsing**: Automatic message loading with background monitoring (2-second intervals)
+- **Various LDAP Directories Supported**:
+		AD, IPA, OpenLDAP, JumpCloud, Foxpass
+- **Authentication**: Username+Password, Username+Password and OTP
+- **Security**: LDAP with StartTLS
+- **Colorful Interface**: Supported a few color schemes to choose from
+- **Neat Features Inside**: Preview window to view the selected DN entry,
+							fast copy all the selected DN's attributes into the clipboard,
+							easy browsing like a filesystem,
+							immediate app exit if needed at any browsing stage,
+							various logging levels for the app
+							
+
+## Technical Specifications
+
+- **Platform**: Linux/Unix systems
+- **Dependencies**: bash, 
+- **Architecture**: Single script with commands implemented as modules with separate functions,
+					dependencies and connectivity checks,
+					various logging levels available,
+					example various configurations available.
+
+## Use Cases
+
+Perfect for one IT person or IT teams that need secure, terminal-based LDAP read-only access on Linux/Unix systems.
+Ideal for system administrators, devops or any IT group requiring view access on Linux/Unix systems to local and cloud LDAP directories.
+
+## Security Model
+
+Uses the standard username+password into an LDAP directory via the LDAP with StartTLS protocols.

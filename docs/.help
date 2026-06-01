@@ -1,0 +1,23 @@
+ldapbrowser is an LDAP browser bash application version 1.0.0
+
+Usage: ldapbrowser <command>
+
+Commands:
+	version			Show ldapbrowser version information
+	describe		Show ldapbrowser description information
+	setup			Set up and define the required ldapbrowser settings
+	debug			Set on/off debug log (useful for network and application issues debug, LDAP queries detailed content and others)
+	themes			Set up current ldapbrowser colour theme
+	list			List an LDAP directory tree starting from the defined branch
+	help			Show this help message
+
+Examples:
+	ldapbrowser version
+	ldapbrowser describe
+	ldapbrowser help
+	ldapbrowser
+	ldapbrowser setup
+	ldapbrowser debug on
+	ldapbrowser debug off
+	ldapbrowser themes
+	ldapbrowser list

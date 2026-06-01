@@ -1,0 +1,18 @@
+# OpenLDAP example:
+
+export LDAP_SERVER_HOSTNAME=""
+export LDAP_SERVER_HOSTNAMES=(
+							  "openldap.int.hazardos.xyz:1389"
+							 )
+export LDAP_DIRECTORY_TYPE="OPENLDAP"
+export LDAP_BIND_ACCOUNT="ldap-ro-admin"
+export LDAP_BIND_ACCOUNT_ATTR="cn"
+export LDAP_BIND_PASSWORD="WWtkd2VsUXpaRFJYUkU="
+export LDAP_SUFFIX="dc=int,dc=hazardos,dc=xyz"
+export LDAP_BASE_DN="dc=int,dc=hazardos,dc=xyz"
+export LDAP_USERS_DN="ou=users"
+export LDAP_CURRENT_DN=${LDAP_BASE_DN}
+export LDAP_SELECTED_DN=${LDAP_CURRENT_DN}
+export LDAP_SNAPSHOTS_DIR="${BASHAPP_DIR}/data"
+export LDAP_SNAPSHOTS_FILE="${LDAP_SNAPSHOTS_DIR}/ldapbrowser-snapshots"
+export CACERT="${BASHAPP_DIR}/${BASHAPP_CONFDIR}/openldap-ca.crt"

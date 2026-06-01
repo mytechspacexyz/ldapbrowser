@@ -1,0 +1,20 @@
+# IPA example:
+
+export LDAP_SERVER_HOSTNAME=""
+export LDAP_SERVER_HOSTNAMES=(
+                              "ipa-dc01.int.labb.xyz" 
+                              "ipa-dc02.int.labb.xyz" 
+                              "ipa-dc03.int.labb.xyz" 
+                             )
+export LDAP_DIRECTORY_TYPE="IPA"
+export LDAP_BIND_ACCOUNT="ldapviewer"
+export LDAP_BIND_ACCOUNT_ATTR="uid"
+export LDAP_BIND_PASSWORD="SWRHaFVURk5oTm0="
+export LDAP_SUFFIX="dc=int,dc=labb,dc=xyz"
+export LDAP_BASE_DN="dc=int,dc=labb,dc=xyz"
+export LDAP_USERS_DN="cn=users,cn=accounts"
+export LDAP_CURRENT_DN=${LDAP_BASE_DN}
+export LDAP_SELECTED_DN=${LDAP_CURRENT_DN}
+export LDAP_SNAPSHOTS_DIR="${BASHAPP_DIR}/data"
+export LDAP_SNAPSHOTS_FILE="${LDAP_SNAPSHOTS_DIR}/ldapbrowser-snapshots"
+export CACERT="${BASHAPP_DIR}/${BASHAPP_CONFDIR}/ipa-ca.crt"

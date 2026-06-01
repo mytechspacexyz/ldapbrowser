@@ -1,0 +1,12 @@
+awk
+base64
+basename
+cat
+cp
+curl
+dirname
+echo
+fzf
+ln
+readlink
+sed

@@ -1,0 +1,16 @@
+# JUMPCLOUD LDAP example:
+
+export LDAP_SERVER_HOSTNAME=""
+export LDAP_SERVER_HOSTNAMES=("ldap.jumpcloud.com")
+export LDAP_DIRECTORY_TYPE="JUMPCLOUD"
+export LDAP_BIND_ACCOUNT="ldapviewer"
+export LDAP_BIND_ACCOUNT_ATTR="uid"
+export LDAP_BIND_PASSWORD="YkdwelQzZDRXREpTYVhOa1Vra0s="
+export LDAP_SUFFIX="o=<jumpcloud orgid here>,dc=jumpcloud,dc=com"
+export LDAP_BASE_DN="o=<jumpcloud orgid here>,dc=jumpcloud,dc=com"
+export LDAP_USERS_DN="ou=Users"
+export LDAP_CURRENT_DN=${LDAP_BASE_DN}
+export LDAP_SELECTED_DN=${LDAP_CURRENT_DN}
+export LDAP_SNAPSHOTS_DIR="${BASHAPP_DIR}/data"
+export LDAP_SNAPSHOTS_FILE="${LDAP_SNAPSHOTS_DIR}/ldapbrowser-snapshots"
+export CACERT="${BASHAPP_DIR}/${BASHAPP_CONFDIR}/jc-ca.crt"
