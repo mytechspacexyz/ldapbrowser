@@ -13,12 +13,10 @@
 ![Shell](https://img.shields.io/badge/shell-bash-orange.svg)
 ![Version](https://img.shields.io/badge/version-1.0.0-informational.svg)
 ![LDAP](https://img.shields.io/badge/LDAP-AD%20%7C%20FreeIPA%20%7C%20OpenLDAP%20%7C%20JumpCloud%20%7C%20Foxpass-brightgreen.svg)
-![Downloads](https://img.shields.io/github/downloads/mytechspacexyz/ldapbrowser/total)
+![Last Commit](https://img.shields.io/github/last-commit/mytechspacexyz/ldapbrowser?style=for-the-badge)
 
 > **Pure bash+curl+fzf interactive LDAP/AD directory browser for the terminal.**
 > No heavy GUI tools. No Java. No Python. No Go. Just bash+curl+fzf+core linux utils.
-
-[![GitHub stars](https://img.shields.io/github/stars/mytechspacexyz/ldapbrowser?style=social)](https://github.com/mytechspacexyz/ldapbrowser)
 
 ---
 
@@ -274,6 +272,12 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 
 - The devops/sysadmin community, MSPs and homelabbers for the inspiration
 
-Built with ❤️ for sysadmins, DevOps engineers, MSPs and homelabbers who live in the terminal.
+---
+
+<div align="center">
+
+**Built with ❤️  for MSPs, DevOps, sysadmins and homelabbers who live in the terminal**
 
 [![GitHub stars](https://img.shields.io/github/stars/mytechspacexyz/ldapbrowser?style=social)](https://github.com/mytechspacexyz/ldapbrowser)
+
+</div>
