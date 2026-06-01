@@ -9,10 +9,10 @@
 ╚══════╝╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═════╝ ╚═╝  ╚═╝ ╚═════╝  ╚══╝╚══╝ ╚══════╝╚══════╝╚═╝  ╚═╝
 ```                                                                                           
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Shell](https://img.shields.io/badge/shell-bash-orange.svg)
-![Version](https://img.shields.io/badge/version-1.0.0-informational.svg)
-![LDAP](https://img.shields.io/badge/LDAP-AD%20%7C%20FreeIPA%20%7C%20OpenLDAP%20%7C%20JumpCloud%20%7C%20Foxpass-brightgreen.svg)
+![License](https://img.shields.io/badge/license-MIT-blue.svg?style=for-the-badge)
+![Shell](https://img.shields.io/badge/shell-bash-orange.svg?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-1.0.0-informational.svg?style=for-the-badge)
+![LDAP](https://img.shields.io/badge/LDAP-AD%20%7C%20FreeIPA%20%7C%20OpenLDAP%20%7C%20JumpCloud%20%7C%20Foxpass-brightgreen.svg?style=for-the-badge)
 ![Last Commit](https://img.shields.io/github/last-commit/mytechspacexyz/ldapbrowser?style=for-the-badge)
 
 > **Pure bash+curl+fzf interactive LDAP/AD directory browser for the terminal.**
@@ -223,6 +223,7 @@ rm -rf <ldapbrowser folder>
 
 ```
 ldapbrowser/
+├── assets/                  # various assets like media files
 ├── ldapbrowser.bash         # main entry point
 ├── ldapbrowser              # symlink → ldapbrowser.bash
 ├── conf/                    # configuration
