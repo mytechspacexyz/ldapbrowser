@@ -2,8 +2,10 @@ awk
 base64
 basename
 cat
+chmod
 cp
 curl
+date
 dirname
 echo
 fzf
