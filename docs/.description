@@ -6,21 +6,22 @@ A lightweight bash application designed to view/browse various LDAP directories 
 
 - **Real-time LDAP Browsing**: Automatic message loading with background monitoring (2-second intervals)
 - **Various LDAP Directories Supported**:
-		AD, IPA, OpenLDAP, JumpCloud, Foxpass
+		AD, IPA, OpenLDAP, 389 DS, OpenDJ, ApacheDS, OneLogin VLDAP, Okta LDAP, JumpCloud, Foxpass
 - **Authentication**: Username+Password, Username+Password and OTP
-- **Security**: LDAP with StartTLS
+- **Security**: LDAP with StartTLS ot LDAPS
 - **Colorful Interface**: Supported a few color schemes to choose from
 - **Neat Features Inside**: Preview window to view the selected DN entry,
 							fast copy all the selected DN's attributes into the clipboard,
 							easy browsing like a filesystem,
 							immediate app exit if needed at any browsing stage,
+							management of app's configuration lifecycle,
 							various logging levels for the app
 							
 
 ## Technical Specifications
 
 - **Platform**: Linux/Unix systems
-- **Dependencies**: bash, 
+- **Dependencies**: bash, curl, fzf
 - **Architecture**: Single script with commands implemented as modules with separate functions,
 					dependencies and connectivity checks,
 					various logging levels available,
@@ -33,4 +34,4 @@ Ideal for system administrators, devops or any IT group requiring view access on
 
 ## Security Model
 
-Uses the standard username+password into an LDAP directory via the LDAP with StartTLS protocols.
+Uses the standard username+password into an LDAP directory via the LDAP with StartTLS or LDAPS protocols.

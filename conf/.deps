@@ -10,5 +10,10 @@ dirname
 echo
 fzf
 ln
+mkdir
 readlink
+rm
 sed
+sleep
+tar
+unlink

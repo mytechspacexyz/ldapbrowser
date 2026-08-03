@@ -1,11 +1,14 @@
-ldapbrowser is an LDAP browser bash application version 1.0.0
+ldapbrowser is an LDAP browser bash application version 1.1.0
 
 Usage: ldapbrowser <command>
 
 Commands:
 	version			Show ldapbrowser version information
 	describe		Show ldapbrowser description information
-	setup			Set up and define the required ldapbrowser settings
+	setup			Set up and manage the required ldapbrowser configuration settings
+					It has subcommands: reset, backup and restore
+					to reset/backup/restore the/to the active configuration
+	completion		Generate autocompletion script for bash
 	debug			Set on/off debug log (useful for network and application issues debug, LDAP queries detailed content and others)
 	themes			Set up current ldapbrowser colour theme
 	list			List an LDAP directory tree starting from the defined branch
@@ -17,6 +20,9 @@ Examples:
 	ldapbrowser help
 	ldapbrowser
 	ldapbrowser setup
+	ldapbrowser setup reset
+	ldapbrowser setup backup
+	ldapbrowser setup restore
 	ldapbrowser debug on
 	ldapbrowser debug off
 	ldapbrowser themes

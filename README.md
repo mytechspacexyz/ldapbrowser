@@ -11,8 +11,8 @@
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg?style=for-the-badge)
 ![Shell](https://img.shields.io/badge/shell-bash-orange.svg?style=for-the-badge)
-![Version](https://img.shields.io/badge/version-1.0.0-informational.svg?style=for-the-badge)
-![LDAP](https://img.shields.io/badge/LDAP-AD%20%7C%20FreeIPA%20%7C%20OpenLDAP%20%7C%20JumpCloud%20%7C%20Foxpass-brightgreen.svg?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-1.1.0-informational.svg?style=for-the-badge)
+![LDAP](https://img.shields.io/badge/LDAP-AD%20%7C%20FreeIPA%20%7C%20OpenLDAP%20%7C%20389DS%20%7C%20OpenDJ%20%7C%20ApacheDS%20%7C%20Okta%20%7C%20OneLogin%20%7C%20JumpCloud%20%7C%20Foxpass-brightgreen.svg?style=for-the-badge)
 ![Last Commit](https://img.shields.io/github/last-commit/mytechspacexyz/ldapbrowser?style=for-the-badge)
 
 > **Pure bash+curl+fzf interactive LDAP/AD directory browser for the terminal.**
@@ -66,24 +66,25 @@ Zero dependencies beyond what every Linux system already has.
 - 🔍 **Object inspection** — view full details of any LDAP object
 - 💾 **Snapshot to file** — save object details to file with `Ctrl+S`
 - 🎨 **Themes** — customizable terminal UI themes
-- 🔐 **Secure** — FQDN + CA certificate validation, no insecure connections
+- 🔐 **Secure** — FQDN + CA certificate validation, no insecure connections (LDAP with StartTLS or LDAPS)
 - 🔄 **Replication aware** — supports multiple LDAP hosts in replication setup
 - 🤖 **Auto-detection** — LDAP suffix deduced automatically during setup
+- ⚙️  **Full configuration lifecycle management** — ldapbrowser setup reset/backup/restore
+- 📟 **Bash completion generation with one command** — ldapbrowser completion
 
 ---
 
 ## ⚠️ Known Limitations
 
-- **No LDAP write operations** — ldapbrowser is a read-only tool by design.
-                                 Creating, modifying or deleting LDAP objects is not supported.
-                                 This is an intentional architectural decision based on the zero-dependency philosophy, 
-                                 curl supports LDAP read queries only.
+- **No LDAP write operations** — ldapbrowser is a read-only tool by design. Creating, modifying or deleting LDAP objects is not supported. This is an intentional architectural decision — curl supports LDAP read queries only. Write operations are planned for v2.0.
+- **OneLogin VLDAP does not support StartTLS — LDAPS only**
+- **Cloud LDAP directories with push-based MFA enabled will trigger a push notification per LDAP query — see QA matrix notes**
 
 ---
 
 ## 📋 Requirements
 
-- `bash` 4.x or higher
+- `bash` 4.4+
 - `curl` with LDAP support
 - `fzf` 0.30+
 - FQDN hostname for LDAP host(s) — **no IP addresses**
@@ -95,13 +96,18 @@ Zero dependencies beyond what every Linux system already has.
 
 ## 🧪 Tested LDAP Directories
 
-| Directory | Version | Status |
-|---|---|---|
-| Microsoft Active Directory | 2019, 2022 | ✅ Tested |
-| FreeIPA | 4.x | ✅ Tested |
-| OpenLDAP | 2.x | ✅ Tested |
-| JumpCloud LDAP | Cloud | ✅ Tested |
-| Foxpass | Cloud | ✅ Tested |
+| Directory | Version | StartTLS | LDAPS | Status |
+|---|---|---|---|---|
+| Microsoft Active Directory | 2019-2022 | ✅ | ✅ | ✅ Tested |
+| FreeIPA | 4.x | ✅ | ✅ | ✅ Tested |
+| OpenLDAP | 2.6.x | ✅ | ✅ | ✅ Tested |
+| 389 DS | 3.1.2 | ✅ | ✅ | ✅ Tested |
+| OpenDJ | 5.1.1 | ✅ | ✅ | ✅ Tested |
+| ApacheDS | 2.0.0.AM26 | ✅ | ✅ | ✅ Tested |
+| Okta LDAP | Cloud | ✅ | ✅ | ✅ Tested |
+| OneLogin VLDAP | Cloud | N/A | ✅ | ✅ Tested |
+| JumpCloud | Cloud | ✅ | ✅ | ✅ Tested |
+| FoxPass | Cloud | ✅ | ✅ | ✅ Tested |
 
 ---
 
@@ -115,29 +121,9 @@ git clone https://github.com/mytechspacexyz/ldapbrowser.git
 cd ~/bin; ln -s <ldapbrowser folder>/ldapbrowser ldapbrowser
 
 # Add autocompletion (optional but recommended)
-# Add the following to your ~/.bashrc or similar and restart the shell:
-_ldapbrowser_completion() {
-    local cur prev commands debug_options
-    cur="${COMP_WORDS[COMP_CWORD]}"
-    prev="${COMP_WORDS[COMP_CWORD-1]}"
-
-    commands="version describe setup debug themes list help"
-    debugopts="on off"
-
-    case "${prev}" in
-        ldapbrowser)
-            COMPREPLY=($(compgen -W "${commands}" -- "${cur}"))
-            return 0
-            ;;
-        debug)
-            COMPREPLY=($(compgen -W "${debugopts}" -- "${cur}"))
-            return 0
-            ;;
-        *)
-            ;;
-    esac
-}
-complete -F _ldapbrowser_completion ldapbrowser
+ldapbrowser completion >> ~/.bashrc 
+or
+ldapbrowser completion >> <path to similar to your shell rc file>
 
 # Run setup
 ldapbrowser setup
@@ -147,26 +133,19 @@ ldapbrowser setup
 
 ## ⚙️ Configuration
 
-```bash
 During `ldapbrowser setup` you will be prompted for:
 
 - LDAP host FQDN(s) — single host or multiple for replication
-- Bind DN username — recommeded read-only LDAP administrator account
-                     because the ldapbrowser doesn't support LDAP write operations
-- Bind DN password — stored as
+- Bind DN username — recommended read-only LDAP administrator account (ldapbrowser is read-only, write operations are not supported)
+- Bind DN password — stored as a base64 encoded value, not shown while typing
 - LDAP suffix — entered manually or can be deduced automatically
 - CA certificate path
 
-Pay SPECIAL attention to the CA certificate(s) that has to be included (and will be copied to the conf folder)
-while running 'ldapbrowser setup'.
-It is best to issue before any setup such a certificate for you LDAP host(s)/cluster with its FQDN using your internal/external CA
-or create a self-signed one as the ldapbrowser is built with curl secure flags to require the CA certificate for a session.
-No IP address will be good for this setup.
+Pay **SPECIAL** attention to the CA certificate(s) that has to be included (and will be copied to the conf folder) while running `ldapbrowser setup`. It is best to issue such a certificate for your LDAP host(s) with its FQDN using your internal/external CA or create a self-signed one — ldapbrowser is built with curl secure flags requiring the CA certificate for a session. No IP address will work for this setup.
 
 All configuration is stored inside the ldapbrowser conf folder — nothing written outside the app directory.
 
-For more details see the short video below
-```
+For more details see the short video below:
 
 ![ldapbrowser setup](assets/ldapbrowser-ad-setup.gif)
 
@@ -175,14 +154,18 @@ For more details see the short video below
 ## 💻 Usage
 
 ```bash
-ldapbrowser setup      # configure your LDAP connection
-ldapbrowser list       # interactively browse the directory tree
-ldapbrowser describe   # show ldapbrowser description information
-ldapbrowser themes     # customize the interface
-ldapbrowser debug on   # enable debug logging
-ldapbrowser debug off  # disable debug logging
-ldapbrowser version    # show version
-ldapbrowser help       # show usage
+ldapbrowser setup           # configure your LDAP connection
+ldapbrowser setup reset     # reset/zero the active configuration
+ldapbrowser setup backup    # backup the active configuration
+ldapbrowser setup restore   # restore configuration
+ldapbrowser completion      # generate bash completion block
+ldapbrowser list            # interactively browse the directory tree
+ldapbrowser describe        # show ldapbrowser description information
+ldapbrowser themes          # customize the interface
+ldapbrowser debug on        # enable debug logging
+ldapbrowser debug off       # disable debug logging
+ldapbrowser version         # show version
+ldapbrowser help            # show usage
 ```
 
 ---
@@ -240,13 +223,18 @@ ldapbrowser/
 
 ## 🧪 QA Compatibility Matrix
 
-| Directory | Browse | Snapshot |
-|---|---|---|
-| Active Directory | ✅ | ✅ |
-| FreeIPA | ✅ | ✅ |
-| OpenLDAP | ✅ | ✅ |
-| JumpCloud | ✅ | ✅ |
-| Foxpass | ✅ | ✅ |
+| Directory              | Browse | Snapshot | StartTLS | LDAPS | Notes                                                                    |
+|------------------------|--------|----------|----------|-------|--------------------------------------------------------------------------|
+| Active Directory       | ✅     | ✅       | ✅       | ✅    |                                                                          |
+| FreeIPA                | ✅     | ✅       | ✅       | ✅    |                                                                          |
+| OpenLDAP               | ✅     | ✅       | ✅       | ✅    |                                                                          |
+| 389 DS                 | ✅     | ✅       | ✅       | ✅    |                                                                          |
+| OpenDJ                 | ✅     | ✅       | ✅       | ✅    |                                                                          |
+| ApacheDS               | ✅     | ✅       | ✅       | ✅    |                                                                          |
+| Okta LDAP              | ✅     | ✅       | ✅       | ✅    | Push MFA confirmed to trigger per-query push notification — see Known Limitations |
+| JumpCloud              | ✅     | ✅       | ✅       | ✅    | Push MFA may trigger per-query push notification — see Known Limitations |
+| OneLogin VLDAP         | ✅     | ✅       | N/A      | ✅    | Push MFA may trigger per-query push notification — see Known Limitations |
+| FoxPass                | ✅     | ✅       | ✅       | ✅    | Push MFA may trigger per-query push notification — see Known Limitations |
 
 ---
 
@@ -267,6 +255,15 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 - [curl](https://curl.se) — the curl utility that is the engine
 - Some LDAP documentation that makes it all easier and possible:
     - [LDAP for Rocket Scientists](https://www.zytrax.com/books/ldap/)
+    - [Microsoft AD Overview](https://learn.microsoft.com/en-us/troubleshoot/windows-server/active-directory/active-directory-overview)
+    - [FreeIPA Directory Server Documentation](https://www.freeipa.org/page/Directory_Server)
+    - [OpenLDAP 2.6 Documentation](https://www.openldap.org/doc/admin26/)
+    - [389 DS Documentation](https://www.port389.org/docs/389ds/documentation.html)
+    - [OpenDJ Documentation](https://doc.openidentityplatform.org/opendj/)
+    - [ApacheDS Documentation And Reference](https://directory.apache.org/apacheds/)
+    - [Okta LDAP Interface Documentation Classic Engine](https://help.okta.com/en-us/content/topics/directory/ldap-interface-main.htm)
+    - [Okta LDAP Interface Documentation Identity Engine](https://help.okta.com/oie/en-us/content/topics/directory/ldap-interface-main.htm)
+    - [OneLogin VLDAP Reference And Details](https://onelogin.service-now.com/support?id=kb_article&sys_id=eb7d6b3997bf56100f94b86ef053af70&kb_category=0d016a4847ccbd509d8dfd1f536d43d9)
     - [JumpCloud: Get Started: Cloud LDAP](https://jumpcloud.com/support/use-cloud-ldap)
     - [JumpCloud: Connect to Cloud LDAP with TLS/SSL](https://jumpcloud.com/support/connect-to-ldap-with-tls-ssl)
     - [FoxPass: LDAP Overview & Debugging](https://docs.foxpass.com/docs/ldap-overview-debugging)

@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+if [[ "${BASH_VERSINFO[0]}" -lt 4 || ( "${BASH_VERSINFO[0]}" -eq 4 && "${BASH_VERSINFO[1]}" -lt 4 ) ]]
+then
+	echo "Error: this app requires bash 4.4+. Detected: ${BASH_VERSION}" >&2
+	echo "       Please upgrade you bash version to be 4.4+" >&2
+	exit 1
+fi
+
 export BASHAPP_DIR=$(dirname "$(readlink -f "$0")")
 
 [[ -f ${BASHAPP_DIR}/.common_configvars ]] && . "${BASHAPP_DIR}"/.common_configvars || echo "There is no .common_configvars file available in this package"
@@ -52,9 +59,13 @@ main() {
     
 	log_debug "function: ${FUNCNAME[0]}, case"
     case "$command" in
-	   "setup")
+		"setup")
 			# setting bash application with required settings
-			cmd_setup
+			cmd_setup "$1"
+			;;
+		"completion")
+			# getting bash completion
+			cmd_completion
 			;;
 		"debug")
 			# turn debug mode on/off
