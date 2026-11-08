@@ -4,6 +4,42 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
 ---
 
+## [1.2.0] - 2026-11-08
+
+### Added
+
+#### New Commands
+- `ldapbrowser log` — log management command with subcommands:
+  - `log clean` — clean the logs 
+  - `log view` — view the logs
+  - `log show` — show the logs
+
+#### Setup
+- **CA certificate selection with fzf** — the CA certificate is now picked interactively instead of typing its full path; cancelling the picker re-prompts
+- **Detailed help for LDAP directory types** — the `ctrl-h` help preview in the directory type picker now gives detailed descriptions
+
+#### Core
+- **Concurrency** — multiple ldapbrowser instances can run side by side, each with its own temporary directory, removed on exit
+- **Signal handling** — TERM, HUP and EXIT signals are now handled in addition to INT
+- **Improved dependency check** — better `check_for_app_deps` handler
+- **Auxiliary functions file** — new `.functions_aux.bash`
+- **File picker helpers** — new `_file_picker` and `_file_picker_preview` handlers
+
+### Changed
+- The DN details preview now shows "DN detailed info could not be fetched" instead of a blank panel when the fetch returns nothing; this message is also written to the snapshot file if `ctrl-s` is used on such a DN
+- Bash completion updated for the new `log` command and its subcommands
+- Long `fzf` and `curl` calls reformatted into multi-line form (no functional change)
+
+### Fixed
+- `.configvars` symlink issue
+
+### Known Limitations
+- No LDAP write operations — read-only by design
+- OneLogin VLDAP does not support StartTLS — LDAPS only
+- Cloud LDAP directories (Okta, OneLogin VLDAP, JumpCloud, FoxPass) with push-based MFA enabled on the bind account trigger a push notification per LDAP query. Recommendation: use a dedicated read-only bind account with MFA disabled.
+
+---
+
 ## [1.1.0] - 2026-08-03
 
 ### Added

@@ -4,6 +4,7 @@ export BASHAPP_LOGDIR="logs"
 export BASHAPP_LOGFILE="${BASHAPP_NAME}.log"
 export BASHAPP_SRCDIR="src"
 export BASHAPP_DOCDIR="docs"
+export BASHAPP_TMPDIR="${BASHAPP_DIR}/tmp/${BASHAPP_NAME}-$$"
 export BASHAPP_EXAMPLESDIR="examples"
 export DEBUGAPP=0
 

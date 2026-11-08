@@ -11,7 +11,7 @@
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg?style=for-the-badge)
 ![Shell](https://img.shields.io/badge/shell-bash-orange.svg?style=for-the-badge)
-![Version](https://img.shields.io/badge/version-1.1.0-informational.svg?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-1.2.0-informational.svg?style=for-the-badge)
 ![LDAP](https://img.shields.io/badge/LDAP-AD%20%7C%20FreeIPA%20%7C%20OpenLDAP%20%7C%20389DS%20%7C%20OpenDJ%20%7C%20ApacheDS%20%7C%20Okta%20%7C%20OneLogin%20%7C%20JumpCloud%20%7C%20Foxpass-brightgreen.svg?style=for-the-badge)
 ![Last Commit](https://img.shields.io/github/last-commit/mytechspacexyz/ldapbrowser?style=for-the-badge)
 
@@ -71,6 +71,11 @@ Zero dependencies beyond what every Linux system already has.
 - 🤖 **Auto-detection** — LDAP suffix deduced automatically during setup
 - ⚙️  **Full configuration lifecycle management** — ldapbrowser setup reset/backup/restore
 - 📟 **Bash completion generation with one command** — ldapbrowser completion
+- 📜 **Log management** — view, show and clean the app logs with `ldapbrowser log`
+- 📂 **Interactive CA certificate selection** — pick the CA certificate with an fzf file picker during setup
+- 🧵 **Multiple instances** — several ldapbrowser instances can run side by side, each with its own temporary directory
+- 🔍 **Startup diagnostics** — bash version and dependency checks with OS-aware install suggestions
+- 📡 **signal handling (SIGTERM/SIGHUP/SIGINT/EXIT)**
 
 ---
 
@@ -84,9 +89,9 @@ Zero dependencies beyond what every Linux system already has.
 
 ## 📋 Requirements
 
-- `bash` 4.4+
-- `curl` with LDAP support
-- `fzf` 0.30+
+- `bash` 4.4 or higher (checked at startup)
+- `curl` 7.18.0+ with LDAP support (checked at startup)
+- `fzf` 0.38.0 or higher
 - FQDN hostname for LDAP host(s) — **no IP addresses**
 - Valid certificate issued by internal or external CA
 - Valid CA(s) certificate(s) to add to the configuration while setting up
@@ -135,11 +140,16 @@ ldapbrowser setup
 
 During `ldapbrowser setup` you will be prompted for:
 
-- LDAP host FQDN(s) — single host or multiple for replication
+- TLS mode — StartTLS or LDAPS
+- LDAP host FQDN(s) with ports — single host or multiple for replication
+- LDAP directory type — picked with fzf (`Ctrl+H` shows help for each type)
 - Bind DN username — recommended read-only LDAP administrator account (ldapbrowser is read-only, write operations are not supported)
 - Bind DN password — stored as a base64 encoded value, not shown while typing
-- LDAP suffix — entered manually or can be deduced automatically
-- CA certificate path
+- LDAP suffix — entered manually or deduced automatically
+- LDAP users DN — per-directory default offered
+- CA certificate — selected with the fzf file picker
+
+If a configuration already exists, `ldapbrowser setup` refuses to run. Use `ldapbrowser setup reset` first, or `ldapbrowser setup backup` to keep a copy.
 
 Pay **SPECIAL** attention to the CA certificate(s) that has to be included (and will be copied to the conf folder) while running `ldapbrowser setup`. It is best to issue such a certificate for your LDAP host(s) with its FQDN using your internal/external CA or create a self-signed one — ldapbrowser is built with curl secure flags requiring the CA certificate for a session. No IP address will work for this setup.
 
@@ -158,6 +168,9 @@ ldapbrowser setup           # configure your LDAP connection
 ldapbrowser setup reset     # reset/zero the active configuration
 ldapbrowser setup backup    # backup the active configuration
 ldapbrowser setup restore   # restore configuration
+ldapbrowser log view        # view the ldapbrowser logs
+ldapbrowser log show        # show the ldapbrowser logs
+ldapbrowser log clean       # clean the ldapbrowser logs
 ldapbrowser completion      # generate bash completion block
 ldapbrowser list            # interactively browse the directory tree
 ldapbrowser describe        # show ldapbrowser description information
@@ -179,6 +192,7 @@ ldapbrowser help            # show usage
 | `Shift+↑` / `Shift+↓` | Scroll the preview window |
 | `Enter` | Enter object like DN and show its children |
 | `Ctrl+S` | Snapshot object details to file in app folder |
+| `Ctrl+P` | Toggle the object details preview |
 | `Esc` / `Ctrl+C` | Exit |
 
 ---
@@ -210,12 +224,14 @@ ldapbrowser/
 ├── ldapbrowser.bash         # main entry point
 ├── ldapbrowser              # symlink → ldapbrowser.bash
 ├── conf/                    # configuration
+│   ├─── backups/            # configuration backups (setup backup)
 │   ├── .common_configvars
 │   ├── .configvars
 │   └── .deps
 ├── src/                     # source functions
 ├── docs/                    # description, help, version
 ├── data/                    # runtime data like snapshots
+├── tmp/                     # per-instance temporary data, removed on exit
 ├── logs/                    # debug logs
 └── examples/                # configuration examples
 ```
@@ -231,7 +247,7 @@ ldapbrowser/
 | 389 DS                 | ✅     | ✅       | ✅       | ✅    |                                                                          |
 | OpenDJ                 | ✅     | ✅       | ✅       | ✅    |                                                                          |
 | ApacheDS               | ✅     | ✅       | ✅       | ✅    |                                                                          |
-| Okta LDAP              | ✅     | ✅       | ✅       | ✅    | Push MFA confirmed to trigger per-query push notification — see Known Limitations |
+| Okta LDAP              | ✅     | ✅       | ✅       | ✅    | Push MFA triggers per-query push notification — see Known Limitations    |
 | JumpCloud              | ✅     | ✅       | ✅       | ✅    | Push MFA may trigger per-query push notification — see Known Limitations |
 | OneLogin VLDAP         | ✅     | ✅       | N/A      | ✅    | Push MFA may trigger per-query push notification — see Known Limitations |
 | FoxPass                | ✅     | ✅       | ✅       | ✅    | Push MFA may trigger per-query push notification — see Known Limitations |

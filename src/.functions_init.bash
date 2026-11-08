@@ -1,12 +1,50 @@
 # Various init functions
 
-# cleanup function when app exits
-cleanup_and_exit() {
+# init app's dirs function
+init_dirs() {
 
 	log_debug "${FUNCNAME[0]} is called"
 
-	log_info "${BASHAPP_NAME} has finished."
-    exit 0
+	mkdir -p -m 700 "${BASHAPP_TMPDIR}" || \
+		{ 
+			log_error "function: ${FUNCNAME[0]}, failed to create temp directory ${BASHAPP_TMPDIR}";
+			echo "Failed to create temp directory ${BASHAPP_TMPDIR}. Exiting...";
+			exit 1; 
+		}
+
+	log_debug "function: ${FUNCNAME[0]}, ${BASHAPP_TMPDIR} created successfully"
+
+}
+
+# cleanup function when app exits
+cleanup_and_exit() {
+
+	local EXITSTATUS=$?
+	local SIGNALNAME="${1:-EXIT}"
+
+	log_debug "${FUNCNAME[0]} is called"
+	log_debug "${FUNCNAME[0]} is called, signal=${SIGNALNAME}, status=${EXITSTATUS}, pid=$$, bashpid=${BASHPID}"
+
+	# disarm the trap first so not to be called twice
+	trap - EXIT INT TERM HUP
+
+	# ignore further signals while cleaning up
+	trap '' INT TERM HUP
+
+	# a signal exits with its conventional code
+	case "${SIGNALNAME}" in
+		INT)  EXITSTATUS=130 ;;
+		TERM) EXITSTATUS=143 ;;
+		HUP)  EXITSTATUS=129 ;;
+	esac
+
+	log_debug "${FUNCNAME[0]}, deleting the bash app's temp folder ${BASHAPP_TMPDIR}"
+	[[ -d "${BASHAPP_TMPDIR}" ]] && rm -rf "${BASHAPP_TMPDIR}"
+
+	log_info "${FUNCNAME[0]}, ${BASHAPP_NAME} has finished, signal=${SIGNALNAME}, exit status=${EXITSTATUS}"
+
+	exit "${EXITSTATUS}"
+
 }
 
 # check for app dependencies function
@@ -14,38 +52,112 @@ check_for_app_deps() {
 
 	log_debug "${FUNCNAME[0]} is called"
 
-	if [[ -f ${BASHAPP_DIR}/.deps ]]
+	[[ ! -f "${BASHAPP_DIR}/.deps" ]] && \
+		{
+			log_error "There is no .deps file in the bash application folder.";
+			echo "There is no .deps file in the bash application folder.";
+			exit 1;
+		}
+
+	local OSID OSIDLIKE
+	if [[ -f /etc/os-release ]]
+	then
+		source /etc/os-release
+		OSID="${ID}"
+		OSIDLIKE="${ID_LIKE}"
+	elif [[ "$(uname -s)" == "Darwin" ]]
+	then
+		OSID="macos"
+		OSIDLIKE=""
+	else
+		OSID="unknown"
+		OSIDLIKE=""
+	fi
+
+	local DISTROCLASS
+	case "${OSID}" in
+		ubuntu|debian)						DISTROCLASS="debian"	;;
+		fedora|rocky|almalinux|rhel|centos) DISTROCLASS="rhel"		;;
+		arch|manjaro)						DISTROCLASS="arch"		;;
+		opensuse*|sles)						DISTROCLASS="suse"		;;
+		alpine)								DISTROCLASS="alpine"	;;
+		macos)								DISTROCLASS="macos"		;;
+		*)
+			case "${OSIDLIKE}" in
+				*debian*) 			DISTROCLASS="debian"	;;
+				*rhel*|*fedora*)	DISTROCLASS="rhel"		;;
+				*arch*)				DISTROCLASS="arch"		;;
+				*suse*)				DISTROCLASS="suse"		;;
+				*)					DISTROCLASS="unknown"	;;
+			esac
+			;;
+	esac
+
+	local PKGMGRCMD
+	case "${DISTROCLASS}" in
+		debian) PKGMGRCMD="sudo apt-get install -y"	;;
+		rhel)   PKGMGRCMD="sudo dnf install -y"		;;
+		arch)   PKGMGRCMD="sudo pacman -S"			;;
+		suse)   PKGMGRCMD="sudo zypper install"		;;
+		alpine) PKGMGRCMD="sudo apk add"			;;
+		macos)  PKGMGRCMD="brew install"			;;
+		*)      PKGMGRCMD=""						;;
+	esac
+
+	local -a MISSINGDEPS
+	while IFS= read -r line
+	do
+		[[ -z "${line}" || "${line}" =~ ^# ]] && continue
+
+		log_debug "function: ${FUNCNAME[0]}, checking dependency ${line}"
+
+		if ! command -v "${line}" &> /dev/null; then
+			MISSINGDEPS+=("${line}")
+		fi
+	done < "${BASHAPP_DIR}/.deps"
+
+	if [[ "${#MISSINGDEPS[@]}" -gt 0 ]]
 	then
 
-		log_debug "function: ${FUNCNAME[0]}, if #1"
+		log_error "function: ${FUNCNAME[0]}, the following required dependencies are missing:"
 
-		while IFS= read -r line
+		echo "The following required dependencies are missing:"
+		echo
+
+		local DEP
+		for DEP in "${MISSINGDEPS[@]}"
 		do
 
-			log_debug "function: ${FUNCNAME[0]}, while loop"
+			log_error "function: ${FUNCNAME[0]}, ${DEP}"
 
-    		if [[ -z "$line" || "$line" =~ ^# ]]
-			then
-				log_debug "function: ${FUNCNAME[0]}, if #2"
-        		continue
-    		fi
-			
-			if ! command -v "$line" &> /dev/null
-			then
+			echo "${DEP}"
 
-				log_debug "function: ${FUNCNAME[0]}, if #3"
+		done
 
-				echo "'$line' is a required dependency but does not exist. Please install it or add to the PATH."
-				log_error "'$line' is a required dependency but does not exist. Please install it or add to the PATH."
-				exit 1
-			fi
+		echo
+		echo "You may need to install packages depending on your Linux/Unix distro class:"
+		echo
+		echo "Distro class detected: ${DISTROCLASS}"
+		echo
 
-		done < "${BASHAPP_DIR}"/.deps
-	else
-		log_error "There is no .deps file in the bash application folder."
-		echo "There is no .deps file in the bash application folder."
+		case "${DISTROCLASS}" in
+			debian) echo "Debian/Ubuntu:   ${PKGMGRCMD} curl libxml2-utils fzf bsdextrautils coreutils tar sed grep gawk"	;;
+			rhel)   echo "RHEL/Rocky/Alma: ${PKGMGRCMD} curl libxml2 fzf util-linux coreutils tar sed grep gawk"		;;
+			arch)   echo "Arch/Manjaro:    ${PKGMGRCMD} curl libxml2 fzf util-linux coreutils tar sed grep gawk"		;;
+			suse)   echo "OpenSUSE:        ${PKGMGRCMD} curl libxml2-tools util-linux coreutils tar sed grep gawk"		;;
+			alpine) echo "Alpine:          ${PKGMGRCMD} curl libxml2-utils fzf util-linux coreutils tar sed grep gawk"		;;
+			macos)  echo "macOS:           ${PKGMGRCMD} curl libxml2 fzf util-linux coreutils tar gnu-sed grep gawk"	;;
+			*)
+				echo "Unknown distro."
+				echo "Please install manually: curl, xmllint, fzf, tar, sed, grep, awk, column, coreutils, "
+				;;
+		esac
+
 		exit 1
 	fi
+
+	log_debug "function: ${FUNCNAME[0]}, all dependencies satisfied on detected OS: ${OSID} (family: ${DISTROCLASS})"
+
 }
 
 # check for LDAP protocol support
@@ -91,7 +203,7 @@ check_app_connectivity() {
 			log_debug "function: ${FUNCNAME[0]}, host = $host"
 
 			if curl ${CURL_OPTS} ${CACERT} --fail \
-					"ldap://${host}/${LDAP_CURRENT_DN}??base?(objectClass=*)" \
+					"${LDAP_URL_PREFIX}${host}/${LDAP_CURRENT_DN}??base?(objectClass=*)" \
 					-u "${LDAP_BIND_ACCOUNT_ATTR}=${LDAP_BIND_ACCOUNT},${LDAP_USERS_DN},${LDAP_SUFFIX}:$(echo "${LDAP_BIND_PASSWORD}" \
 					| base64 -d)" >/dev/null 2>&1
 			then

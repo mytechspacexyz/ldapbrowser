@@ -15,7 +15,10 @@ A lightweight bash application designed to view/browse various LDAP directories 
 							easy browsing like a filesystem,
 							immediate app exit if needed at any browsing stage,
 							management of app's configuration lifecycle,
-							various logging levels for the app
+							various logging levels for the app,
+							logging of warn/error turned on always,
+							support for various app colour themes,
+							app's logs colorized show/view/clean as separate subcommand,
 							
 
 ## Technical Specifications
@@ -23,7 +26,7 @@ A lightweight bash application designed to view/browse various LDAP directories 
 - **Platform**: Linux/Unix systems
 - **Dependencies**: bash, curl, fzf
 - **Architecture**: Single script with commands implemented as modules with separate functions,
-					dependencies and connectivity checks,
+					dependencies, curl LDAP check support and connectivity checks,
 					various logging levels available,
 					example various configurations available.
 

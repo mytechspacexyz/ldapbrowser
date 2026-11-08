@@ -13,8 +13,16 @@ export BASHAPP_DIR=$(dirname "$(readlink -f "$0")")
 [[ -f ${BASHAPP_DIR}/.configvars ]] && . "${BASHAPP_DIR}"/.configvars || echo "There is no .configvars file available in this package"
 [[ -f ${BASHAPP_DIR}/${BASHAPP_SRCDIR}/.functions.bash ]] && . "${BASHAPP_DIR}"/${BASHAPP_SRCDIR}/.functions.bash || echo "There is no .functions.bash file available in this package"
 
-# Trap the SIGINT signal (Ctrl+C)
-trap cleanup_and_exit INT
+# Trap the signals:
+# EXIT
+# SIGINT (Ctrl+C)
+# SIGTERM
+# SIGHUP
+
+trap 'cleanup_and_exit EXIT' EXIT
+trap 'cleanup_and_exit INT'  INT
+trap 'cleanup_and_exit TERM' TERM
+trap 'cleanup_and_exit HUP'  HUP
 
 # Main bash application function
 main() {
@@ -26,6 +34,7 @@ main() {
 
 	# checking for bash application dependencies
 	check_for_app_deps
+	init_dirs
 
 	check_ldap_support || {
 
@@ -80,6 +89,10 @@ main() {
 			# if connectivity is ok then proceed to the list command handler
             cmd_list
             ;;
+		"log")
+			# log management
+			cmd_log "$1"
+			;;
         "version")
             cmd_version
             ;;

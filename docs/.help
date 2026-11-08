@@ -12,6 +12,8 @@ Commands:
 	debug			Set on/off debug log (useful for network and application issues debug, LDAP queries detailed content and others)
 	themes			Set up current ldapbrowser colour theme
 	list			List an LDAP directory tree starting from the defined branch
+	log				Manage ldapbrowser log. It has subcommands: clean, view and show
+					to clean, view (tail -f) and show (cat) colorized ldapbrowser's log
 	help			Show this help message
 
 Examples:
@@ -23,7 +25,11 @@ Examples:
 	ldapbrowser setup reset
 	ldapbrowser setup backup
 	ldapbrowser setup restore
+	ldapbrowser completion
 	ldapbrowser debug on
 	ldapbrowser debug off
 	ldapbrowser themes
 	ldapbrowser list
+	ldapbrowser log clean
+	ldapbrowser log view 
+	ldapbrowser log show

@@ -260,13 +260,29 @@ cmd_setup() {
 	
 				log_debug "function: ${FUNCNAME[0]}, if #8"
 	
-		        read -r -e -p "Enter the full path to CA certificate LDAP server(s) certificate(s) signed with): " CACERT
+				SELECTEDFILE=""
+				_file_picker "${HOME}" "Select a CA certificate"
+
+
+				if [[ -n "${SELECTEDFILE}" && -f "${SELECTEDFILE}" ]]
+				then
 	
-				log_debug "function: ${FUNCNAME[0]}, CACERT=${CACERT}"
+					CACERT="${SELECTEDFILE}"
 	
-				cp "${CACERT}" "${BASHAPP_DIR}/${BASHAPP_CONFDIR}" || { log_error "function: ${FUNCNAME[0]}, error copying the ${CACERT} into the ${BASHAPP_DIR}/${BASHAPP_CONFDIR}"; exit 1; }
-				CACERT=$(basename "${CACERT}")
-				echo "${CACERT}"
+					log_debug "function: ${FUNCNAME[0]}, CACERT=${CACERT}"
+		
+					cp "${CACERT}" "${BASHAPP_DIR}/${BASHAPP_CONFDIR}" || \
+						{ log_error "function: ${FUNCNAME[0]}, error copying the ${CACERT} into the ${BASHAPP_DIR}/${BASHAPP_CONFDIR}"; exit 1; }
+					CACERT=$(basename "${CACERT}")
+					echo "${CACERT}"
+
+				else
+					
+					log_error "function: ${FUNCNAME[0]}, error selecting a CA certificate"
+					log_error "function: ${FUNCNAME[0]}, either no certificate selected or its file is inaccessible"
+
+				fi
+
 		    fi
 	
 		done
@@ -323,11 +339,11 @@ cmd_setup() {
 		# creating the symlink to the .configvars if it doesn't exist:
 		
 		log_debug "function: ${FUNCNAME[0]}, creating the symlink .configvars to the ${BASHAPP_CONFDIR}/.configvars"
-	
-		# cd'ing into the bash application dir
-		# if failed (rare if ever can happen) exit with error message into the log
+		
 		cd "${BASHAPP_DIR}" || { log_error "function: ${FUNCNAME[0]}, error cding into the ${BASHAPP_DIR}"; exit 1; }
-		[[ ! -L .configvars ]] && ln -s "${BASHAPP_CONFDIR}/.configvars" .configvars
+		[[ -L .configvars ]] || \
+			ln -s "${BASHAPP_CONFDIR}/.configvars" .configvars || \
+			{ log_error "function: ${FUNCNAME[0]}, error creating the symlink ${BASHAPP_DIR}/.configvars"; exit 1; }
 		chmod 600 "${BASHAPP_CONFDIR}/.configvars"
 	
 		echo "setup has been completed successfully."	
@@ -370,33 +386,110 @@ cmd_setup_ldapdir_type_help() {
 	case "${LDAPDIRTYPE}" in
 		AD)
 			echo "Microsoft Active Directory"
+			echo
+			echo "Links:"
+			echo "---------------------------------------------------------------------"
+			echo
+			echo "https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts"
+			echo "https://ldapwiki.com/wiki/Wiki.jsp?page=Microsoft%20Active%20Directory"
+			echo
+			echo "---------------------------------------------------------------------"
 			;;
 		IPA)
 			echo "FreeIPA Identity Management System"
+			echo
+			echo "Links:"
+			echo "---------------------------------------------------------------------"
+			echo
+			echo "https://www.freeipa.org/page/Documentation"
+			echo "https://www.port389.org/docs/389ds/documentation.html"
+			echo
+			echo "---------------------------------------------------------------------"
 			;;
 		OPENLDAP)
 			echo "OpenLDAP Directory"
+			echo
+			echo "Links:"
+			echo "---------------------------------------------------------------------"
+			echo
+			echo "https://www.openldap.org/doc/admin26/"
+			echo "https://ldapwiki.com/wiki/Wiki.jsp?page=OpenLDAP"
+			echo
+			echo "---------------------------------------------------------------------"
 			;;
 		389DS)
 			echo "389 Directory Server"
+			echo
+			echo "Links:"
+			echo "---------------------------------------------------------------------"
+			echo
+			echo "https://www.port389.org/docs/389ds/documentation.html"
+			echo
+			echo "---------------------------------------------------------------------"
 			;;
 		OPENDJ)
 			echo "Open Directory Server part of Open Identity Platform"
+			echo
+			echo "Links:"
+			echo "---------------------------------------------------------------------"
+			echo
+			echo "https://doc.openidentityplatform.org/opendj/reference/"
+			echo "https://ldapwiki.com/wiki/Wiki.jsp?page=OpenDJ"
+			echo
+			echo "---------------------------------------------------------------------"
 			;;
 		APACHEDS)
 			echo "Apache Directory Server"
+			echo
+			echo "Links:"
+			echo "---------------------------------------------------------------------"
+			echo
+			echo "https://directory.apache.org/apacheds/"
+			echo
+			echo "---------------------------------------------------------------------"
 			;;
 		OKTA)
 			echo "Okta LDAP Interface"
+			echo
+			echo "Links:"
+			echo "---------------------------------------------------------------------"
+			echo
+			echo "https://help.okta.com/oie/en-us/content/topics/directory/ldap-interface-main.htm"
+			echo "https://help.okta.com/en-us/content/topics/directory/ldap-interface-main.htm"
+			echo
+			echo "---------------------------------------------------------------------"
 			;;
 		ONELOGIN)
 			echo "OneLogin VLDAP"
+			echo
+			echo "Links:"
+			echo "---------------------------------------------------------------------"
+			echo
+			echo "https://docs.oneidentity.com/bundle/onelogin_administration-portal/page/guides/administrationportal/virtual-ldap.htm"
+			echo
+			echo "---------------------------------------------------------------------"
 			;;
 		JUMPCLOUD)
 			echo "JumpCloud Cloud LDAP"
+			echo
+			echo "Links:"
+			echo "---------------------------------------------------------------------"
+			echo
+			echo "https://jumpcloud.com/support/use-cloud-ldap"
+			echo "https://jumpcloud.com/blog/setting-up-ldap"
+			echo
+			echo "---------------------------------------------------------------------"
 			;;
 		FOXPASS)
 			echo "Foxpass Cloud LDAP Directory"
+			echo
+			echo "Links:"
+			echo "---------------------------------------------------------------------"
+			echo
+			echo "https://www.splashtop.com/foxpass/product/ldap"
+			echo "https://docs.foxpass.com/docs/ldap-overview-debugging"
+			echo
+			echo "---------------------------------------------------------------------"
 			;;
 		*)
 			echo "Unknown LDAP directory type. No help available."
@@ -563,6 +656,134 @@ cmd_backup_preview() {
 }
 export -f cmd_backup_preview
 
+# log command handler
+cmd_log() {
+
+	log_debug "${FUNCNAME[0]} is called"
+
+	local SUBCMD="$1"
+
+	echo
+
+	if [[ -z "${SUBCMD}" ]]
+	then
+		
+		log_error "function: ${FUNCNAME[0]}, no subcommand provided. exiting ..."
+
+		echo "No subcommand provided. Please see the help below to run correctly."
+		echo
+		cmd_help
+		
+		exit 1
+
+	elif [[ "${SUBCMD}" == "clean" ]]
+	then
+
+		cmd_log_clean
+
+	elif [[ "${SUBCMD}" == "view" ]]
+	then
+
+		cmd_log_view
+
+	elif [[ "${SUBCMD}" == "show" ]]
+	then
+
+		cmd_log_show
+
+	else
+
+		log_error "function: ${FUNCNAME[0]}, unknown subcommand provided. exiting ..."	
+
+		echo "Unknown subcommand '${SUBCMD}' provided. Please see the help below to run correctly."
+		echo
+		cmd_help
+
+		exit 1
+
+	fi
+
+}
+
+# log clean subcommand handler
+cmd_log_clean() {
+
+	log_debug "${FUNCNAME[0]} is called"
+
+	local LOGFILE="${BASHAPP_DIR}/${BASHAPP_LOGDIR}/${BASHAPP_LOGFILE}"
+
+	[[ ! -f "${LOGFILE}" ]] && { log_error "function: ${FUNCNAME[0]}, log file not found"; return 1; }
+
+	: > "${LOGFILE}"
+
+	echo
+	echo "Log file cleaned: ${BASHAPP_LOGFILE}"
+	echo
+
+	log_debug "function: ${FUNCNAME[0]}, log file cleaned: ${LOGFILE}"
+
+} 
+
+# log view subcommand handler
+cmd_log_view() {
+
+	log_debug "${FUNCNAME[0]} is called"
+
+	local LOGFILE="${BASHAPP_DIR}/${BASHAPP_LOGDIR}/${BASHAPP_LOGFILE}"
+
+	[[ ! -f "${LOGFILE}" ]] && { log_error "function: ${FUNCNAME[0]}, log file not found"; return 1; }
+
+	local BOLD GREY GREEN BLUE RED YELLOW WHITE RESET
+	BOLD='\x1b[1m'
+	GREY='\x1b[90m'
+	GREEN='\x1b[92m'
+	BLUE='\x1b[94m'
+	RED='\x1b[91m'
+	YELLOW='\x1b[93m'
+	WHITE='\x1b[97m'
+	RESET='\x1b[0m'
+
+	tail -n70 -f "${BASHAPP_DIR}/${BASHAPP_LOGDIR}/${BASHAPP_LOGFILE}" | \
+	sed -E \
+		-e "s/([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2})/${GREY}\1${RESET}/g" \
+		-e "s/\[INFO\]/${BOLD}${GREEN}[INFO]${RESET}/g" \
+		-e "s/\[DEBUG\]/${BOLD}${BLUE}[DEBUG]${RESET}/g" \
+		-e "s/\[ERROR\]/${BOLD}${RED}[ERROR]${RESET}/g" \
+		-e "s/\[WARN\]/${BOLD}${YELLOW}[WARN]${RESET}/g" \
+		-e "s/(: )(.*)/\1${BOLD}${WHITE}\2${RESET}/g"
+
+} 
+
+# log show subcommand handler
+cmd_log_show() {
+
+	log_debug "${FUNCNAME[0]} is called"
+
+	local LOGFILE="${BASHAPP_DIR}/${BASHAPP_LOGDIR}/${BASHAPP_LOGFILE}"
+
+	[[ ! -f "${LOGFILE}" ]] && { log_error "function: ${FUNCNAME[0]}, log file not found"; return 1; }
+
+	local BOLD GREY GREEN BLUE RED YELLOW WHITE RESET
+	BOLD='\x1b[1m'
+	GREY='\x1b[90m'
+	GREEN='\x1b[92m'
+	BLUE='\x1b[94m'
+	RED='\x1b[91m'
+	YELLOW='\x1b[93m'
+	WHITE='\x1b[97m'
+	RESET='\x1b[0m'
+
+	cat "${BASHAPP_DIR}/${BASHAPP_LOGDIR}/${BASHAPP_LOGFILE}" | \
+	sed -E \
+		-e "s/([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2})/${GREY}\1${RESET}/g" \
+		-e "s/\[INFO\]/${BOLD}${GREEN}[INFO]${RESET}/g" \
+		-e "s/\[DEBUG\]/${BOLD}${BLUE}[DEBUG]${RESET}/g" \
+		-e "s/\[ERROR\]/${BOLD}${RED}[ERROR]${RESET}/g" \
+		-e "s/\[WARN\]/${BOLD}${YELLOW}[WARN]${RESET}/g" \
+		-e "s/(: )(.*)/\1${BOLD}${WHITE}\2${RESET}/g"
+
+}
+
 # completion command handler
 cmd_completion() {
 
@@ -570,13 +791,14 @@ cmd_completion() {
 
 	cat <<- 'COMPLETION'
 	_ldapbrowser_completion() {
-	    local cur prev commands debugopts setupopts
+	    local cur prev commands debugopts setupopts logopts
 	    cur="${COMP_WORDS[COMP_CWORD]}"
 	    prev="${COMP_WORDS[COMP_CWORD-1]}"
 
-	    commands="version describe setup completion debug themes list help"
+	    commands="version describe setup completion debug themes list log help"
 	    debugopts="on off"
 	    setupopts="reset backup restore"
+	    logopts="clean view show"
 
 	    case "${prev}" in
 	        ldapbrowser)
@@ -589,6 +811,10 @@ cmd_completion() {
 	            ;;
 	        setup)
 	            COMPREPLY=($(compgen -W "${setupopts}" -- "${cur}"))
+	            return 0
+	            ;;
+	        log)
+	            COMPREPLY=($(compgen -W "${logopts}" -- "${cur}"))
 	            return 0
 	            ;;
 	        *)
@@ -754,10 +980,25 @@ cmd_ldapdn_info() {
 		log_debug "function: ${FUNCNAME[0]}, LDAP_VIEWED_DN=${LDAP_VIEWED_DN}"
 
 		# show the DN attributes
-		LDAP_VIEWED_DN_ATTRIBUTES=$(curl ${CURL_OPTS} ${CACERT} "${LDAP_URL_PREFIX}${LDAP_SERVER_HOSTNAME}/${LDAP_VIEWED_DN}??base?(objectClass=*)" -u "${LDAP_BIND_ACCOUNT_ATTR}=${LDAP_BIND_ACCOUNT},${LDAP_USERS_DN},${LDAP_SUFFIX}:$(echo "${LDAP_BIND_PASSWORD}" | base64 -d)" | sed '/^$/d')
-		echo "${LDAP_VIEWED_DN_ATTRIBUTES}"
+		LDAP_VIEWED_DN_ATTRIBUTES=$(
+			curl ${CURL_OPTS} ${CACERT} \
+				"${LDAP_URL_PREFIX}${LDAP_SERVER_HOSTNAME}/${LDAP_VIEWED_DN}??base?(objectClass=*)" \
+				-u "${LDAP_BIND_ACCOUNT_ATTR}=${LDAP_BIND_ACCOUNT},${LDAP_USERS_DN},${LDAP_SUFFIX}:$(echo "${LDAP_BIND_PASSWORD}" | base64 -d)" | \
+				sed '/^$/d'
+		)
 
-		log_debug "function: ${FUNCNAME[0]}, LDAP_VIEWED_DN_ATTRIBUTES=${LDAP_VIEWED_DN_ATTRIBUTES}"
+		if [[ -z "${LDAP_VIEWED_DN_ATTRIBUTES}" ]]
+		then
+
+			log_error "function: ${FUNCNAME[0]}, LDAP DN detailed info could not be fetched"
+			echo "DN detailed info could not be fetched"
+
+		else
+
+			echo "${LDAP_VIEWED_DN_ATTRIBUTES}"
+			log_debug "function: ${FUNCNAME[0]}, LDAP_VIEWED_DN_ATTRIBUTES=${LDAP_VIEWED_DN_ATTRIBUTES}"
+
+		fi
 
 	fi
 }
@@ -795,7 +1036,25 @@ cmd_list() {
 			log_debug "function: ${FUNCNAME[0]}, LDAP_SNAPSHOTS_FILE=${LDAP_SNAPSHOTS_FILE}"
 
 			# case of dn with children:
-			LDAP_SELECTED_DN=$( (echo ".."; echo "$CHILDREN" | awk '{print substr($0, index($0, ":")+2)}' | sed 's/^[[:space:]]*//') | fzf --reverse --cycle --preview-window=right:50% --preview 'cmd_ldapdn_info {}' --preview-window=hidden --bind 'ctrl-p:toggle-preview' --bind 'ctrl-s:execute-silent(echo -e "\nsnapshotting on $(date "+%Y-%m-%d %H:%M:%S"):\n" >> "${LDAP_SNAPSHOTS_FILE}"; cmd_ldapdn_info {} >> "${LDAP_SNAPSHOTS_FILE}")' --border=rounded --border-label="Select an LDAP DN under ${LDAP_CURRENT_DN}:" --border-label-pos=center --header "Actions for LDAP objects | ctrl-p: view LDAP object details | ctrl-s: snapshot LDAP object details to the snapshot file" )
+			LDAP_SELECTED_DN=$(
+				{
+					echo ".."
+					echo "$CHILDREN" | awk '{print substr($0, index($0, ":")+2)}' | sed 's/^[[:space:]]*//'
+				} | fzf \
+					--reverse \
+					--cycle \
+					--preview-window=right:50% \
+					--preview 'cmd_ldapdn_info {}' \
+					--preview-window=hidden \
+					--bind 'ctrl-p:toggle-preview' \
+					--bind 'ctrl-s:execute-silent(echo -e "\nsnapshotting on $(date "+%Y-%m-%d %H:%M:%S"):\n" >> "${LDAP_SNAPSHOTS_FILE}"; cmd_ldapdn_info {} >> "${LDAP_SNAPSHOTS_FILE}")' \
+					--border=rounded \
+					--border-label="Select an LDAP DN under ${LDAP_CURRENT_DN}:" \
+					--border-label-pos=center \
+					--header "Actions for LDAP objects | ctrl-p: view LDAP object details | ctrl-s: snapshot LDAP object details to the snapshot file"
+			)
+
+			#LDAP_SELECTED_DN=$( (echo ".."; echo "$CHILDREN" | awk '{print substr($0, index($0, ":")+2)}' | sed 's/^[[:space:]]*//') | fzf --reverse --cycle --preview-window=right:50% --preview 'cmd_ldapdn_info {}' --preview-window=hidden --bind 'ctrl-p:toggle-preview' --bind 'ctrl-s:execute-silent(echo -e "\nsnapshotting on $(date "+%Y-%m-%d %H:%M:%S"):\n" >> "${LDAP_SNAPSHOTS_FILE}"; cmd_ldapdn_info {} >> "${LDAP_SNAPSHOTS_FILE}")' --border=rounded --border-label="Select an LDAP DN under ${LDAP_CURRENT_DN}:" --border-label-pos=center --header "Actions for LDAP objects | ctrl-p: view LDAP object details | ctrl-s: snapshot LDAP object details to the snapshot file" )
 
 			# checking Ctrl+C inside the fzf:
 			fzf_exit_code=$?
@@ -836,7 +1095,26 @@ cmd_list() {
 			# %3A => ":"
 			LDAP_CURRENT_DN=${LDAP_CURRENT_DN//%20/ }
 			LDAP_CURRENT_DN=${LDAP_CURRENT_DN//%3A/:}
-			LDAP_SELECTED_DN=$( (echo ".."; echo "${LDAP_CURRENT_DN}" | sed 's/^[[:space:]]*//') | fzf --reverse --cycle --preview-window=right:50% --preview 'cmd_ldapdn_info {}' --preview-window=hidden --bind 'ctrl-p:toggle-preview' --bind 'ctrl-s:execute-silent(echo -e "\nsnapshotting on $(date "+%Y-%m-%d %H:%M:%S"):\n" >> "${LDAP_SNAPSHOTS_FILE}"; cmd_ldapdn_info {} >> "${LDAP_SNAPSHOTS_FILE}")' --border=rounded --border-label="Select an LDAP DN under ${LDAP_CURRENT_DN}" --border-label-pos=center --header "Actions for LDAP objects | ctrl-p: view LDAP object details | ctrl-s: snapshot LDAP object details to the snapshot file" )
+
+			LDAP_SELECTED_DN=$(
+				{
+					echo ".."
+					echo "${LDAP_CURRENT_DN}" | sed 's/^[[:space:]]*//'
+				} | fzf \
+					--reverse \
+					--cycle \
+					--preview-window=right:50% \
+					--preview 'cmd_ldapdn_info {}' \
+					--preview-window=hidden \
+					--bind 'ctrl-p:toggle-preview' \
+					--bind 'ctrl-s:execute-silent(echo -e "\nsnapshotting on $(date "+%Y-%m-%d %H:%M:%S"):\n" >> "${LDAP_SNAPSHOTS_FILE}"; cmd_ldapdn_info {} >> "${LDAP_SNAPSHOTS_FILE}")' \
+					--border=rounded \
+					--border-label="Select an LDAP DN under ${LDAP_CURRENT_DN}" \
+					--border-label-pos=center \
+					--header "Actions for LDAP objects | ctrl-p: view LDAP object details | ctrl-s: snapshot LDAP object details to the snapshot file"
+			)
+
+			#LDAP_SELECTED_DN=$( (echo ".."; echo "${LDAP_CURRENT_DN}" | sed 's/^[[:space:]]*//') | fzf --reverse --cycle --preview-window=right:50% --preview 'cmd_ldapdn_info {}' --preview-window=hidden --bind 'ctrl-p:toggle-preview' --bind 'ctrl-s:execute-silent(echo -e "\nsnapshotting on $(date "+%Y-%m-%d %H:%M:%S"):\n" >> "${LDAP_SNAPSHOTS_FILE}"; cmd_ldapdn_info {} >> "${LDAP_SNAPSHOTS_FILE}")' --border=rounded --border-label="Select an LDAP DN under ${LDAP_CURRENT_DN}" --border-label-pos=center --header "Actions for LDAP objects | ctrl-p: view LDAP object details | ctrl-s: snapshot LDAP object details to the snapshot file" )
 
 			# checking Ctrl+C inside the fzf:
 			fzf_exit_code=$?
